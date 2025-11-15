@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login Instrutor</title>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+// Supabase
+const supabaseUrl = 'https://xoxnwsezmkyfipbnrtiq.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhveG53c2V6bWt5ZmlwYm5ydGlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwNzgwNTYsImV4cCI6MjA1MzY1NDA1Nn0.fyxXHllPPQpvvtVWP3UQBBbuojyznJognQ7yIgSpH28';
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+// 🔹 Login do instrutor
+window.loginInstrutor = async function() {
+    const login = document.getElementById("login").value.trim();
+    const senha = document.getElementById("senha").value.trim();
+
+    const { data: instrutor, error } = await supabase
+        .from("instrutores")
+        .select("*")
+        .eq("login", login)
+        .eq("senha", senha)
+        .single();
+
+    if(error || !instrutor) {
+        alert("Login ou senha incorretos!");
+        return;
+    }
+
+    // Salvar sessão
+    localStorage.setItem("instrutorId", instrutor.id);
+    localStorage.setItem("instrutorNome", instrutor.nome);
+
+    document.getElementById("loginContainer").style.display = "none";
+    document.getElementById("aulasContainer").style.display = "block";
+
+    carregarAulas(instrutor.id);
+}
+
+// 🔹 Logout
+window.logout = function() {
+    localStorage.removeItem("instrutorId");
+    localStorage.removeItem("instrutorNome");
+    document.getElementById("loginContainer").style.display = "block";
+    document.getElementById("aulasContainer").style.display = "none";
+    document.getElementById("login").value = "";
+    document.getElementById("senha").value = "";
+}
+
+// 🔹 Auto-login se sessão existir
+const instrutorId = localStorage.getItem("instrutorId");
+if(instrutorId){
+    document.getElementById("loginContainer").style.display = "none";
+    document.getElementById("aulasContainer").style.display = "block";
+    carregarAulas(instrutorId);
+}
+
+// 🔹 Carregar aulas do instrutor
+async function carregarAulas(instrutorId) {
+    const { data: aulas, error } = await supabase
+        .from("aulas")
+        .select(`id, data_hora, status, aluno:aluno_id(nome), veiculos(modelo)`)
+        .eq("instrutor_id", instrutorId)
+        .order("data_hora", { ascending: true });
+
+    const tbody = document.getElementById("aulasBody");
+    tbody.innerHTML = "";
+
+    if(!aulas || aulas.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4">Nenhuma aula encontrada</td></tr>`;
+        return;
+    }
+
+    const agora = new Date();
+
+    for (const aula of aulas) {
+        // Atualiza automaticamente aula Pendente já passada
+        if(aula.status === "Pendente" && new Date(aula.data_hora) <= agora){
+            const { error } = await supabase
+                .from("aulas")
+                .update({ status: "Realizada" })
+                .eq("id", aula.id);
+
+            if(!error) aula.status = "Realizada"; // Atualiza no frontend
+        }
+
+        const tr = document.createElement("tr");
+        const dataFormatada = new Date(aula.data_hora).toLocaleString("pt-BR", {dateStyle:"short", timeStyle:"short"});
+
+        // Escolher cor do status
+        let statusCor = "gray";
+        if(aula.status === "Pendente") statusCor = "orange";
+        else if(aula.status === "Confirmada") statusCor = "green";
+        else if(aula.status === "Realizada") statusCor = "blue";
+
+        tr.innerHTML = `<td>${dataFormatada}</td>
+                        <td>${aula.aluno?.nome||"-"}</td>
+                        <td>${aula.veiculos?.modelo||"-"}</td>
+                        <td style="color:${statusCor}; font-weight:bold;">${aula.status}</td>`;
+        tbody.appendChild(tr);
+    }
+}
+</script>
+
+<style>
+body {font-family: Arial; background: linear-gradient(135deg,#1e3c72,#2a5298); color:white; display:flex; justify-content:center; align-items:center; min-height:100vh; flex-direction:column; margin:0;}
+.container{background-color:rgba(0,0,0,0.3);padding:20px 30px;border-radius:15px;width:90%;max-width:400px;box-shadow:0 0 15px rgba(0,0,0,0.5);}
+h2{text-align:center;margin-bottom:20px;}
+input{width:100%;padding:10px;margin:8px 0;border-radius:8px;border:none;}
+button{width:100%;padding:10px;background-color:#00bfff;border:none;border-radius:8px;color:white;font-weight:bold;cursor:pointer;margin-top:5px;}
+button:hover{background-color:#0099cc;}
+table{width:100%;border-collapse:collapse;margin-top:15px;background-color:white;color:black;border-radius:10px;overflow:hidden;}
+th,td{padding:10px;border-bottom:1px solid #ddd;text-align:center;}
+th{background-color:#0099cc;color:white;}
+#logoutBtn{background-color:#f44336;margin-top:10px;}
+#logoutBtn:hover{background-color:#d32f2f;}
+</style>
+
+</head>
+<body>
+
+<div class="container" id="loginContainer">
+<h2>Login Instrutor</h2>
+<input type="text" id="login" placeholder="Login do instrutor">
+<input type="password" id="senha" placeholder="Senha do instrutor">
+<button onclick="loginInstrutor()">Entrar</button>
+</div>
+
+<div class="container" id="aulasContainer" style="display:none;">
+<h2>Seus Horários</h2>
+<table>
+<thead><tr><th>Data/Hora</th><th>Aluno</th><th>Veículo</th><th>Status</th></tr></thead>
+<tbody id="aulasBody"></tbody>
+</table>
+<button id="logoutBtn" onclick="logout()">Sair</button>
+</div>
+
+</body>
+</html>

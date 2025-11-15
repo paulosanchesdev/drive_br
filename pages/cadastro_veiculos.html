@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Autoescola - Cadastro de Veículos</title>
+
+  <style>
+      body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f8f9fa; }
+      header { background-color: #007bff; color: white; padding: 1.5rem; text-align: center; }
+      .container { max-width: 1200px; margin: 2rem auto; padding: 1rem; }
+      .card { background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 2rem; padding: 1.5rem; }
+      h2 { color: black; margin-bottom: 1rem; }
+      form { display: flex; flex-wrap: wrap; gap: 1rem; }
+      form input, form select, form button {
+        padding: 0.75rem; font-size: 1rem; border-radius: 5px; border: 1px solid #ccc;
+        width: calc(50% - 1rem);
+      }
+      form button { background-color: black; color: white; border: none; cursor: pointer; width: 100%; }
+      form button:hover { background-color: #00ff66; }
+
+      table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+      table th, table td { padding: 0.75rem; border: 1px solid #ddd; text-align: left; }
+      table th { background-color: black; color: white; }
+
+      .btn-edit { background: orange; color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer; border: none; }
+      .btn-delete { background: red; color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer; border: none; }
+
+      /* MODAL */
+      .modal-bg {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5);
+        justify-content: center; align-items: center;
+      }
+      .modal {
+        background: white; padding: 20px; border-radius: 8px; width: 350px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      }
+      .modal h3 { margin-top: 0; color: #007bff; }
+      .modal input, .modal select {
+        width: 100%; padding: 8px; margin-bottom: 10px;
+        border: 1px solid #ccc; border-radius: 5px;
+      }
+      .modal button {
+        width: 100%; padding: 10px; margin-top: 5px;
+        border: none; border-radius: 5px; cursor: pointer;
+      }
+      .btn-save { background: #007bff; color: white; }
+      .btn-close { background: #555; color: white; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="card">
+      <h2>Cadastro de Veículos</h2>
+
+      <form id="form-veiculo">
+          <input type="text" id="modelo" placeholder="Modelo do veículo" required />
+          <input type="text" id="placa" placeholder="Placa" required />
+
+          <select id="categoria" required>
+            <option value="">Selecione a Categoria</option>
+          </select>
+
+          <button type="submit">Cadastrar Veículo</button>
+      </form>
+
+      <h3>Veículos Cadastrados</h3>
+
+      <table id="veiculos-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Modelo</th>
+            <th>Placa</th>
+            <th>Categoria</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- MODAL DE EDIÇÃO -->
+  <div class="modal-bg" id="modal-edit">
+    <div class="modal">
+      <h3>Editar Veículo</h3>
+      <input type="text" id="edit-modelo">
+      <input type="text" id="edit-placa">
+      <select id="edit-categoria"></select>
+
+      <button class="btn-save" id="btn-salvar-edicao">Salvar Alterações</button>
+      <button class="btn-close" onclick="fecharModal()">Cancelar</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+    const supabaseUrl = "https://xoxnwsezmkyfipbnrtiq.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhveG53c2V6bWt5ZmlwYm5ydGlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwNzgwNTYsImV4cCI6MjA1MzY1NDA1Nn0.fyxXHllPPQpvvtVWP3UQBBbuojyznJognQ7yIgSpH28";
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    let veiculoEditando = null;
+
+    // -----------------------------
+    // CARREGAR CATEGORIAS
+    // -----------------------------
+    async function carregarCategorias() {
+      const { data } = await supabase.from("categorias_cnh").select("*").order("nome");
+
+      const select = document.getElementById("categoria");
+      const selectEdit = document.getElementById("edit-categoria");
+
+      select.innerHTML = `<option value="">Selecione a Categoria</option>`;
+      selectEdit.innerHTML = `<option value="">Selecione a Categoria</option>`;
+
+      data.forEach(cat => {
+        const opt1 = new Option(`${cat.nome} - ${cat.descricao}`, cat.id);
+        const opt2 = new Option(`${cat.nome} - ${cat.descricao}`, cat.id);
+        select.appendChild(opt1);
+        selectEdit.appendChild(opt2);
+      });
+    }
+
+    // -----------------------------
+    // CARREGAR VEÍCULOS
+    // -----------------------------
+    async function carregarVeiculos() {
+      const { data } = await supabase
+        .from("veiculos")
+        .select("id, modelo, placa, categoria_cnh:categoria_id (nome)");
+
+      const tbody = document.querySelector("#veiculos-table tbody");
+      tbody.innerHTML = "";
+
+      data.forEach(v => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${v.id}</td>
+          <td>${v.modelo}</td>
+          <td>${v.placa}</td>
+          <td>${v.categoria_cnh?.nome || "–"}</td>
+          <td>
+            <button class="btn-edit" onclick="editar(${v.id}, '${v.modelo}', '${v.placa}', ${v.categoria_cnh ? v.categoria_cnh.id : "null"})">Editar</button>
+            <button class="btn-delete" onclick="excluir(${v.id})">Excluir</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    // -----------------------------
+    // CADASTRAR VEÍCULO
+    // -----------------------------
+    document.getElementById("form-veiculo").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const modelo = document.getElementById("modelo").value;
+      const placa = document.getElementById("placa").value;
+      const categoria_id = document.getElementById("categoria").value;
+
+      await supabase.from("veiculos").insert([{ modelo, placa, categoria_id }]);
+      alert("Veículo cadastrado!");
+
+      e.target.reset();
+      carregarVeiculos();
+    });
+
+    // -----------------------------
+    // ABRIR MODAL DE EDIÇÃO
+    // -----------------------------
+    window.editar = function (id, modelo, placa, categoria_id) {
+      veiculoEditando = id;
+      document.getElementById("edit-modelo").value = modelo;
+      document.getElementById("edit-placa").value = placa;
+      document.getElementById("edit-categoria").value = categoria_id;
+      document.getElementById("modal-edit").style.display = "flex";
+    };
+
+    window.fecharModal = function () {
+      document.getElementById("modal-edit").style.display = "none";
+    };
+
+    // -----------------------------
+    // SALVAR EDIÇÃO
+    // -----------------------------
+    document.getElementById("btn-salvar-edicao").onclick = async () => {
+      const modelo = document.getElementById("edit-modelo").value;
+      const placa = document.getElementById("edit-placa").value;
+      const categoria_id = document.getElementById("edit-categoria").value;
+
+      await supabase
+        .from("veiculos")
+        .update({ modelo, placa, categoria_id })
+        .eq("id", veiculoEditando);
+
+      fecharModal();
+      carregarVeiculos();
+      alert("Veículo atualizado!");
+    };
+
+    // -----------------------------
+    // EXCLUIR VEÍCULO
+    // -----------------------------
+    window.excluir = async function (id) {
+      if (!confirm("Deseja realmente excluir este veículo?")) return;
+
+      await supabase.from("veiculos").delete().eq("id", id);
+
+      carregarVeiculos();
+      alert("Veículo excluído!");
+    };
+
+    // Inicializar
+    carregarCategorias();
+    carregarVeiculos();
+  </script>
+</body>
+</html>

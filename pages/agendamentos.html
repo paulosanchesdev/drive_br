@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Autoescola - Gerenciamento</title>
+  <!-- CSS do Flatpickr para o calendário -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+  <style>
+    /* Estilos gerais */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f8f9fa;
+    }
+    header {
+      background-color:black;
+      color: white;
+      padding: 1.5rem;
+      text-align: center;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 1rem;
+    }
+    .card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-bottom: 2rem;
+      padding: 1.5rem;
+    }
+    h2 {
+      color: black;
+      margin-bottom: 1rem;
+    }
+    /* Formulário */
+    form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    form input,
+    form select,
+    form button {
+      padding: 0.75rem;
+      font-size: 1rem;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      width: calc(50% - 1rem);
+    }
+    form button {
+      background-color: black;
+      color: white;
+      border: none;
+      cursor: pointer;
+      width: 100%;
+    }
+    form button:hover {
+      background-color: #00ff66;
+    }
+    /* Campo de datas ocupa 100% */
+    #datas-agendamento {
+      width: 100%;
+    }
+    /* Tabelas */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    table th,
+    table td {
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    table th {
+      background-color:black;
+      color: white;
+    }
+    /* Botões */
+    .btn {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-right: 0.5rem;
+    }
+    .btn:hover {
+      background-color: #218838;
+    }
+    .btn-deletar {
+      background-color: #dc3545;
+    }
+    .btn-deletar:hover {
+      background-color: #c82333;
+    }
+    .btn-editar {
+      background-color: #ffc107;
+    }
+    .btn-editar:hover {
+      background-color: #e0a800;
+    }
+    /* Estilos para a tabela resumida */
+    #resumo-table th,
+    #resumo-table td {
+      text-align: left;
+    }
+    #resumo-table .aluno-nome {
+      cursor: pointer;
+      color: #007bff;
+      text-decoration: underline;
+    }
+    /* Modal */
+    .modal {
+      display: none; 
+      position: fixed; 
+      z-index: 1000; 
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto; 
+      background-color: rgba(0,0,0,0.4);
+    }
+    .modal-content {
+      background-color: #fefefe;
+      margin: 10% auto; 
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      max-width: 800px;
+    }
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Formulário de Agendamento -->
+    <div class="card">
+      <h2>Agendamento de Aulas</h2>
+      <form id="form-agendamento">
+        <select id="aluno-agendamento" required>
+          <option value="">Selecione o Aluno</option>
+        </select>
+        <select id="instrutor-agendamento" required>
+          <option value="">Selecione o Instrutor</option>
+        </select>
+        <select id="veiculo-agendamento" required>
+          <option value="">Selecione o Veículo</option>
+        </select>
+        <!-- Campo para selecionar datas via calendário -->
+        <input type="text" id="datas-agendamento" placeholder="Selecione as datas" required />
+        <input type="time" id="hora-agendamento" required />
+        <button type="submit">Agendar Aula</button>
+      </form>
+    </div>
+    <!-- Tabela Resumida dos Agendamentos (agrupados por aluno) -->
+    <div class="card">
+      <h2>Resumo dos Agendamentos</h2>
+      <table id="resumo-table">
+        <thead>
+          <tr>
+            <th>Aluno</th>
+            <th>Total de Aulas</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal para exibir os detalhes dos agendamentos de um aluno -->
+  <div id="modal-detalhes" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h3>Detalhes dos Agendamentos</h3>
+      <table id="modal-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Data</th>
+            <th>Hora</th>
+            <th>Instrutor</th>
+            <th>Veículo</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- JS do Flatpickr -->
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <!-- Script principal -->
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const supabaseUrl = 'https://xoxnwsezmkyfipbnrtiq.supabase.co';
+    const supabaseKey =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhveG53c2V6bWt5ZmlwYm5ydGlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwNzgwNTYsImV4cCI6MjA1MzY1NDA1Nn0.fyxXHllPPQpvvtVWP3UQBBbuojyznJognQ7yIgSpH28';
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Variável global para controle do modo de edição (edição individual)
+    let editId = null;
+    // Instância do flatpickr
+    let datePicker;
+
+    // Objeto para armazenar os agendamentos agrupados por aluno
+    let agendamentosGroup = {};
+
+    // Função para formatar data de "YYYY-MM-DD" para "DD/MM/YYYY"
+    function formatDateBR(dateStr) {
+      const parts = dateStr.split("-");
+      return parts.reverse().join("/");
+    }
+
+    // Inicializa o flatpickr em modo "multiple"
+    function initDatePicker() {
+      datePicker = flatpickr("#datas-agendamento", {
+        mode: "multiple",
+        dateFormat: "d-m-Y",
+        allowInput: true
+      });
+    }
+
+    // Carrega os selects de Alunos, Instrutores e Veículos
+    async function carregarSelects() {
+      try {
+        // Alunos
+        const { data: alunos } = await supabase.from('alunos').select('*');
+        const alunoSelect = document.getElementById('aluno-agendamento');
+        alunoSelect.innerHTML = '<option value="">Selecione o Aluno</option>';
+        alunos.forEach((aluno) => {
+          const option = document.createElement('option');
+          option.value = aluno.id;
+          option.textContent = aluno.nome;
+          alunoSelect.appendChild(option);
+        });
+
+        // Instrutores
+        const { data: instrutores } = await supabase.from('instrutores').select('*');
+        const instrutorSelect = document.getElementById('instrutor-agendamento');
+        instrutorSelect.innerHTML = '<option value="">Selecione o Instrutor</option>';
+        instrutores.forEach((instrutor) => {
+          const option = document.createElement('option');
+          option.value = instrutor.id;
+          option.textContent = instrutor.nome;
+          instrutorSelect.appendChild(option);
+        });
+
+        // Veículos
+        const { data: veiculos } = await supabase.from('veiculos').select('*');
+        const veiculoSelect = document.getElementById('veiculo-agendamento');
+        veiculoSelect.innerHTML = '<option value="">Selecione o Veículo</option>';
+        veiculos.forEach((veiculo) => {
+          const option = document.createElement('option');
+          option.value = veiculo.id;
+          option.textContent = veiculo.modelo;
+          veiculoSelect.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Erro ao carregar selects:', error.message);
+      }
+    }
+
+    // Carrega os agendamentos, agrupa por aluno e preenche a tabela resumo
+    async function carregarResumoAgendamentos() {
+      try {
+        const { data: aulas, error } = await supabase
+          .from('aulas')
+          .select(
+            'id, aluno_id, instrutor_id, veiculo_id, data_hora, alunos(nome), instrutores(nome), veiculos(modelo)'
+          );
+        if (error) {
+          console.error('Erro ao carregar agendamentos:', error.message);
+          return;
+        }
+
+        // Agrupar os agendamentos por aluno_id
+        agendamentosGroup = {}; // limpa o objeto
+        aulas.forEach(aula => {
+          const alunoId = aula.aluno_id;
+          if (!agendamentosGroup[alunoId]) {
+            agendamentosGroup[alunoId] = {
+              nome: aula.alunos ? aula.alunos.nome : 'Não encontrado',
+              agendamentos: []
+            };
+          }
+          agendamentosGroup[alunoId].agendamentos.push(aula);
+        });
+
+        // Preencher a tabela resumo
+        const resumoBody = document.querySelector('#resumo-table tbody');
+        resumoBody.innerHTML = '';
+        for (const alunoId in agendamentosGroup) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="aluno-nome" data-aluno-id="${alunoId}">${agendamentosGroup[alunoId].nome}</td>
+            <td>${agendamentosGroup[alunoId].agendamentos.length}</td>
+          `;
+          // Adiciona evento de clique no nome do aluno para mostrar detalhes
+          tr.querySelector('.aluno-nome').addEventListener('click', (e) => {
+            const id = e.target.getAttribute('data-aluno-id');
+            mostrarDetalhesAluno(id);
+          });
+          resumoBody.appendChild(tr);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar resumo de agendamentos:', error.message);
+      }
+    }
+
+    // Função para abrir o modal e exibir os detalhes dos agendamentos de um aluno
+    function mostrarDetalhesAluno(alunoId) {
+      const modal = document.getElementById('modal-detalhes');
+      const modalBody = document.querySelector('#modal-table tbody');
+      modalBody.innerHTML = '';
+
+      const grupo = agendamentosGroup[alunoId];
+      if (!grupo) return;
+
+      // Ordena os agendamentos por data (ascendente)
+      grupo.agendamentos.sort((a, b) => new Date(a.data_hora) - new Date(b.data_hora));
+
+      grupo.agendamentos.forEach(aula => {
+        // Separa a data e a hora
+        const dataHora = aula.data_hora ? aula.data_hora.split('T') : ['Não disponível', 'Não disponível'];
+        const dataISO = dataHora[0];
+        const dataBR = dataISO !== 'Não disponível' ? formatDateBR(dataISO) : dataISO;
+        const hora = dataHora[1] ? dataHora[1].substring(0,5) : 'Não disponível';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${aula.id}</td>
+          <td>${dataBR}</td>
+          <td>${hora}</td>
+          <td>${aula.instrutores ? aula.instrutores.nome : 'Não encontrado'}</td>
+          <td>${aula.veiculos ? aula.veiculos.modelo : 'Não encontrado'}</td>
+          <td></td>
+        `;
+
+        // Botão de "Remarcar" (antigo Editar)
+        const btnEdit = document.createElement('button');
+        btnEdit.textContent = 'Remarcar';
+        btnEdit.classList.add('btn', 'btn-editar');
+        btnEdit.addEventListener('click', () => {
+          // Preenche o formulário com os dados do agendamento selecionado (modo edição utiliza a primeira data)
+          editId = aula.id;
+          document.getElementById('aluno-agendamento').value = aula.aluno_id;
+          document.getElementById('instrutor-agendamento').value = aula.instrutor_id;
+          document.getElementById('veiculo-agendamento').value = aula.veiculo_id;
+          // Atualiza o flatpickr com a data deste agendamento
+          datePicker.setDate(dataISO);
+          document.getElementById('hora-agendamento').value = hora;
+          // Altera o botão do formulário para indicar atualização
+          document.getElementById('form-agendamento').querySelector('button').textContent = 'Atualizar Aula';
+          fecharModal();
+        });
+
+        // Botão de deleção para o agendamento
+        const btnDelete = document.createElement('button');
+        btnDelete.textContent = 'Deletar';
+        btnDelete.classList.add('btn', 'btn-deletar');
+        btnDelete.addEventListener('click', async () => {
+          if (confirm(`Deseja realmente deletar o agendamento ID ${aula.id}?`)) {
+            try {
+              const { error } = await supabase.from('aulas').delete().eq('id', aula.id);
+              if (error) throw error;
+              alert(`Agendamento ID ${aula.id} deletado com sucesso!`);
+              // Se o registro em edição for deletado, reseta o formulário
+              if (editId === aula.id) {
+                editId = null;
+                document.getElementById('form-agendamento').reset();
+                document.getElementById('form-agendamento').querySelector('button').textContent = 'Agendar Aula';
+                datePicker.clear();
+              }
+              // Recarrega os agendamentos
+              carregarResumoAgendamentos();
+              fecharModal();
+            } catch (error) {
+              console.error('Erro ao deletar agendamento:', error.message);
+              alert('Erro ao deletar agendamento: ' + error.message);
+            }
+          }
+        });
+
+        const acaoCell = tr.querySelector('td:last-child');
+        acaoCell.appendChild(btnEdit);
+        acaoCell.appendChild(btnDelete);
+
+        modalBody.appendChild(tr);
+      });
+
+      // Exibe o modal
+      modal.style.display = "block";
+    }
+
+    // Função para fechar o modal
+    function fecharModal() {
+      document.getElementById('modal-detalhes').style.display = "none";
+    }
+
+    // Evento para fechar o modal ao clicar no "x"
+    document.querySelector('.close').addEventListener('click', fecharModal);
+
+    // Evento para fechar o modal ao clicar fora do conteúdo
+    window.addEventListener('click', (event) => {
+      const modal = document.getElementById('modal-detalhes');
+      if (event.target === modal) {
+        fecharModal();
+      }
+    });
+
+    // Função para cadastrar (inserir) ou atualizar um agendamento
+    document.getElementById('form-agendamento').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const alunoId = document.getElementById('aluno-agendamento').value;
+      const instrutorId = document.getElementById('instrutor-agendamento').value;
+      const veiculoId = document.getElementById('veiculo-agendamento').value;
+      const hora = document.getElementById('hora-agendamento').value;
+      
+      // Recupera as datas selecionadas via flatpickr
+      const datasSelecionadas = datePicker.selectedDates;
+      
+      if (!alunoId || !instrutorId || !veiculoId || datasSelecionadas.length === 0 || !hora) {
+        alert('Por favor, preencha todos os campos.');
+        return;
+      }
+      
+      if (editId) {
+        // Modo de edição: atualiza apenas o registro selecionado (usa a primeira data selecionada)
+        const dataFormatada = datePicker.formatDate(datasSelecionadas[0], "Y-m-d");
+        const data_hora = `${dataFormatada}T${hora}:00`;
+        try {
+          const { error } = await supabase
+            .from('aulas')
+            .update({ aluno_id: alunoId, instrutor_id: instrutorId, veiculo_id: veiculoId, data_hora })
+            .eq('id', editId);
+          if (error) throw error;
+          alert(`Agendamento ID ${editId} atualizado com sucesso!`);
+          editId = null;
+          document.getElementById('form-agendamento').querySelector('button').textContent = 'Agendar Aula';
+          document.getElementById('form-agendamento').reset();
+          datePicker.clear();
+          carregarResumoAgendamentos();
+        } catch (error) {
+          console.error('Erro ao atualizar agendamento:', error.message);
+          alert('Erro ao atualizar agendamento: ' + error.message);
+        }
+      } else {
+        // Modo de inserção: insere um registro para cada data selecionada
+        const registros = datasSelecionadas.map((data) => {
+          const dataFormatada = datePicker.formatDate(data, "Y-m-d");
+          return {
+            aluno_id: alunoId,
+            instrutor_id: instrutorId,
+            veiculo_id: veiculoId,
+            data_hora: `${dataFormatada}T${hora}:00`
+          };
+        });
+        try {
+          const { error } = await supabase.from('aulas').insert(registros);
+          if (error) throw error;
+          alert('Aula(s) agendada(s) com sucesso!');
+          document.getElementById('form-agendamento').reset();
+          datePicker.clear();
+          carregarResumoAgendamentos();
+        } catch (error) {
+          console.error('Erro ao agendar aula(s):', error.message);
+          alert('Erro ao agendar aula(s): ' + error.message);
+        }
+      }
+    });
+
+    // Inicializa os selects, o flatpickr e carrega o resumo dos agendamentos
+    carregarSelects();
+    initDatePicker();
+    carregarResumoAgendamentos();
+  </script>
+</body>
+</html>

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Menu Drive BR</title>
+  <style>
+    /* Fonte digital */
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
+
+    /* Tema padrão: escuro */
+    body {
+      background-color: #000;
+      color: #fff;
+      font-family: 'Orbitron', sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      transition: all 0.5s ease;
+    }
+
+    /* Tema claro */
+    body.light {
+      background-color: #f0f0f0;
+      color: #111;
+    }
+
+    /* Logo em hexágono */
+    .logo {
+      width: 240px;
+      margin: 40px auto 20px;
+      display: block;
+      animation: pulseLogo 3s infinite alternate;
+      filter: drop-shadow(0 0 4px #0f0);
+      clip-path: polygon(
+        50% 0%, 
+        93% 25%, 
+        93% 75%, 
+        50% 100%, 
+        7% 75%, 
+        7% 25%
+      );
+      transition: all 0.4s ease;
+      cursor: pointer;
+    }
+
+    body.light .logo {
+      filter: drop-shadow(0 0 4px #888);
+    }
+
+    @keyframes pulseLogo {
+      from { filter: brightness(105%) drop-shadow(0 0 4px #00ff66); }
+      to { filter: brightness(120%) drop-shadow(0 0 10px #00bfff); }
+    }
+
+    .logo:hover {
+      transform: scale(1.1);
+      filter: brightness(140%) drop-shadow(0 0 15px #00ff66) drop-shadow(0 0 30px #00ff66);
+    }
+
+    /* Botão alternar tema com ícone de farol amarelo pulsante */
+    .theme-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: #222;
+      border: none;
+      padding: 10px;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: all 0.3s ease;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .theme-btn svg {
+      width: 24px;
+      height: 24px;
+      fill: #ffeb3b; /* amarelo */
+      animation: pulseLight 1.5s infinite alternate;
+    }
+
+    @keyframes pulseLight {
+      from { filter: drop-shadow(0 0 4px #ffeb3b); }
+      to { filter: drop-shadow(0 0 15px #ffeb3b); }
+    }
+
+    .theme-btn:hover {
+      background-color: #555;
+    }
+
+    body.light .theme-btn {
+      background-color: #ddd;
+    }
+
+    body.light .theme-btn:hover {
+      background-color: #bbb;
+    }
+
+    /* Contêiner do menu */
+    .menu-container {
+      text-align: center;
+      margin: 20px 0 80px;
+    }
+
+    .hex-row {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+
+    .hexagon {
+      position: relative;
+      width: 160px;
+      height: 90px;
+      text-align: center;
+      background: #111;
+      color: #999;
+      font-size: 1.1em;
+      font-weight: bold;
+      text-transform: uppercase;
+      cursor: pointer;
+      clip-path: polygon(
+        50% 0%, 
+        93% 25%, 
+        93% 75%, 
+        50% 100%, 
+        7% 75%, 
+        7% 25%
+      );
+      transition: all 0.4s ease;
+      box-shadow: inset 0 0 10px #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 10px;
+      line-height: 1.2;
+      text-decoration: none
+    }
+
+    .hexagon.yellow {
+      padding: 10px 25px;
+    }
+
+    .hexagon:hover {
+      color: #fff;
+      transform: scale(1.1);
+      animation: pulse 1.5s infinite alternate;
+    }
+
+    @keyframes pulse {
+      from { filter: brightness(100%); }
+      to { filter: brightness(140%); }
+    }
+
+    .hexagon.green:hover {
+      background: #00ff66;
+      box-shadow: 0 0 15px #00ff66, 0 0 30px #00ff66, 0 0 60px #00ff66;
+    }
+
+    .hexagon.yellow:hover {
+      background: #ffee00;
+      box-shadow: 0 0 15px #ffee00, 0 0 30px #ffee00, 0 0 60px #ffee00;
+    }
+
+    .hexagon.blue:hover {
+      background: #00bfff;
+      box-shadow: 0 0 15px #00bfff, 0 0 30px #00bfff, 0 0 60px #00bfff;
+    }
+
+    body.light .hexagon {
+      background: #eee;
+      color: #111;
+      box-shadow: inset 0 0 10px #ccc;
+    }
+
+    body.light .hexagon:hover {
+      color: #000;
+    }
+
+    /* Responsividade */
+    @media (max-width: 768px) {
+      .hex-row {
+        gap: 25px;
+      }
+
+      .hexagon {
+        width: 130px;
+        height: 75px;
+        font-size: 1em;
+        padding: 10px 8px;
+      }
+
+      .hexagon.yellow {
+        padding: 10px 15px;
+      }
+
+      .logo {
+        width: 200px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .hex-row {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .hexagon {
+        width: 160px;
+        margin-bottom: 15px;
+      }
+
+      .hexagon.yellow {
+        padding: 10px 20px;
+      }
+
+      .logo {
+        width: 150px;
+      }
+    }
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      max-width:1200px;
+      margin: 16px auto;
+      padding:0 16px;
+    }
+  </style>
+</head>
+<body>
+
+ 
+  <!-- Logo -->
+  <img src="logo site.png" alt="Logo Drive BR" class="logo">
+
+  <!-- Menu -->
+  <div class="menu-container">
+    <div class="hex-row">
+      <a href="cadastro_alunos.html" target="_blank" class="hexagon green">Alunos</a>
+      <a href="cadastro-intrutores.html" target="_blank" class="hexagon yellow">Instrutores</a>
+      <a href="cadastro_veiculos.html" target="_blank" class="hexagon blue">Veículos</a>
+      <a href="agendamentos.html" target="_blank" class="hexagon green">Aulas</a>
+    </div>
+  </div>
+
+  <script>
+    function toggleTheme() {
+      document.body.classList.toggle('light');
+    }
+  </script>
+ 
+
+ <script>
+  // Tema: salvar preferência
+  const themeBtn = document.getElementById('themeBtn');
+  const themeLabel = document.getElementById('themeLabel');
+
+  function applyThemeFromStorage(){
+    const t = localStorage.getItem('drivebr_theme');
+    if(t === 'light') document.body.classList.add('light');
+    else document.body.classList.remove('light');
+    updateThemeLabel();
+  }
+  function toggleTheme(){
+    document.body.classList.toggle('light');
+    localStorage.setItem('drivebr_theme', document.body.classList.contains('light') ? 'light' : 'dark');
+    updateThemeLabel();
+  }
+  function updateThemeLabel(){
+    const on = document.body.classList.contains('light');
+    themeLabel.textContent = on ? '' : '';
+  }
+  themeBtn.addEventListener('click', toggleTheme);
+  applyThemeFromStorage();
+</script>
+</body>
+</html>
