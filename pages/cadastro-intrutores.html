@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Autoescola - Gerenciamento de Instrutores</title>
+  <title>Instrutores</title>
   <style>
       body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f8f9fa; }
       header { background-color: black; color: white; padding: 1.5rem; text-align: center; }
@@ -13,16 +13,34 @@
       .card { background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); margin-bottom: 2rem; padding: 1.5rem; }
       h2 { color: black; margin-bottom: 1rem; }
       form { display: flex; flex-wrap: wrap; gap: 1rem; }
-      form input, form button { padding: 0.75rem; font-size: 1rem; border-radius: 5px; border: 1px solid #ccc; width: calc(50% - 1rem); }
-      form button { background-color: black; color: white; border: none; cursor: pointer; width: 100%; }
+
+      form input, form button {
+        padding: 0.75rem;
+        font-size: 1rem;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        width: calc(50% - 1rem);
+      }
+
+      form button {
+        background-color: black;
+        color: white;
+        border: none;
+        cursor: pointer;
+        width: 100%;
+      }
+
       form button:hover { background-color: #00ff66; }
+
       table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
       table th, table td { padding: 0.75rem; border: 1px solid #ddd; text-align: left; }
       table th { background-color: black; color: white; }
+
       .btn-acoes {
         display: flex;
         gap: 8px;
       }
+
       .btn-editar, .btn-excluir {
         padding: 6px 12px;
         border: none;
@@ -30,8 +48,61 @@
         cursor: pointer;
         color: #fff;
       }
+
       .btn-editar { background-color: #007bff; }
       .btn-excluir { background-color: #dc3545; }
+
+
+      /* ---------------------------------------
+            RESPONSIVIDADE APLICADA
+      --------------------------------------- */
+      @media (max-width: 768px) {
+
+        form input {
+          width: 100%;
+        }
+
+        table {
+          font-size: 14px;
+        }
+
+        table th, table td {
+          padding: 8px;
+        }
+
+        .btn-acoes {
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .btn-editar, .btn-excluir {
+          width: 100%;
+          text-align: center;
+        }
+      }
+
+      @media (max-width: 480px) {
+        h2 {
+          font-size: 1.3rem;
+        }
+
+        form input {
+          font-size: 0.9rem;
+        }
+
+        form button {
+          font-size: 1rem;
+          padding: 0.9rem;
+        }
+
+        table {
+          font-size: 13px;
+        }
+
+        table th, table td {
+          padding: 6px;
+        }
+      }
   </style>
 </head>
 <body>
@@ -71,16 +142,14 @@
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhveG53c2V6bWt5ZmlwYm5ydGlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwNzgwNTYsImV4cCI6MjA1MzY1NDA1Nn0.fyxXHllPPQpvvtVWP3UQBBbuojyznJognQ7yIgSpH28';
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Carregar instrutores cadastrados
     async function carregarInstrutores() {
       try {
-        const { data: instrutores, error } = await supabase
-          .from('instrutores')
-          .select('*');
+        const { data: instrutores, error } = await supabase.from('instrutores').select('*');
         if (error) throw error;
 
         const tableBody = document.getElementById('instrutores-table').querySelector('tbody');
         tableBody.innerHTML = '';
+
         instrutores.forEach(instrutor => {
           const row = document.createElement('tr');
           row.innerHTML = `
@@ -103,7 +172,6 @@
       }
     }
 
-    // Cadastrar instrutor
     document.getElementById('form-instrutor').addEventListener('submit', async (e) => {
       e.preventDefault();
       const nome = document.getElementById('nome-instrutor').value;
@@ -126,7 +194,6 @@
       }
     });
 
-    // FUNÇÃO: Editar instrutor
     window.editarInstrutor = async function(id) {
       const novoNome = prompt("Novo nome:");
       const novoCPF = prompt("Novo CPF:");
@@ -151,14 +218,10 @@
       }
     };
 
-    // FUNÇÃO: Excluir instrutor
     window.excluirInstrutor = async function(id) {
       if (!confirm("Tem certeza que deseja excluir este instrutor?")) return;
 
-      const { error } = await supabase
-        .from("instrutores")
-        .delete()
-        .eq("id", id);
+      const { error } = await supabase.from("instrutores").delete().eq("id", id);
 
       if (error) {
         alert("Erro ao excluir: " + error.message);
@@ -172,3 +235,5 @@
   </script>
 </body>
 </html>
+
+
