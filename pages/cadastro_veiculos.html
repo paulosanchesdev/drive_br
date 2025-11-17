@@ -3,28 +3,94 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Autoescola - Cadastro de Veículos</title>
+  <title>Veículos</title>
 
   <style>
       body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f8f9fa; }
-      header { background-color: #007bff; color: white; padding: 1.5rem; text-align: center; }
       .container { max-width: 1200px; margin: 2rem auto; padding: 1rem; }
-      .card { background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 2rem; padding: 1.5rem; }
+
+      .card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+      }
+
       h2 { color: black; margin-bottom: 1rem; }
-      form { display: flex; flex-wrap: wrap; gap: 1rem; }
-      form input, form select, form button {
-        padding: 0.75rem; font-size: 1rem; border-radius: 5px; border: 1px solid #ccc;
+
+      /* FORMULÁRIO */
+      form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+
+      form input,
+      form select,
+      form button {
+        padding: 0.75rem;
+        font-size: 1rem;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+      }
+
+      /* Padrão desktop */
+      form input,
+      form select {
         width: calc(50% - 1rem);
       }
-      form button { background-color: black; color: white; border: none; cursor: pointer; width: 100%; }
+
+      form button {
+        background-color: black;
+        color: white;
+        border: none;
+        cursor: pointer;
+        width: 100%;
+      }
+
       form button:hover { background-color: #00ff66; }
 
-      table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-      table th, table td { padding: 0.75rem; border: 1px solid #ddd; text-align: left; }
-      table th { background-color: black; color: white; }
+      /* TABELA */
+      .table-container {
+        width: 100%;
+        overflow-x: auto;
+      }
 
-      .btn-edit { background: orange; color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer; border: none; }
-      .btn-delete { background: red; color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer; border: none; }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+      }
+
+      table th, table td {
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        text-align: left;
+      }
+
+      table th {
+        background-color: black;
+        color: white;
+      }
+
+      .btn-edit {
+        background: orange;
+        color: white;
+        padding: 6px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        border: none;
+      }
+
+      .btn-delete {
+        background: red;
+        color: white;
+        padding: 6px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        border: none;
+      }
 
       /* MODAL */
       .modal-bg {
@@ -33,22 +99,78 @@
         top: 0; left: 0; width: 100%; height: 100%;
         background: rgba(0,0,0,0.5);
         justify-content: center; align-items: center;
+        padding: 1rem;
       }
+
       .modal {
-        background: white; padding: 20px; border-radius: 8px; width: 350px;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        width: 100%;
+        max-width: 350px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        animation: fadeIn 0.3s;
       }
+
+      @keyframes fadeIn {
+        from { opacity: 0; transform: scale(0.9); }
+        to { opacity: 1; transform: scale(1); }
+      }
+
       .modal h3 { margin-top: 0; color: #007bff; }
-      .modal input, .modal select {
-        width: 100%; padding: 8px; margin-bottom: 10px;
-        border: 1px solid #ccc; border-radius: 5px;
+
+      .modal input,
+      .modal select {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
       }
+
       .modal button {
-        width: 100%; padding: 10px; margin-top: 5px;
-        border: none; border-radius: 5px; cursor: pointer;
+        width: 100%;
+        padding: 10px;
+        margin-top: 5px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
       }
-      .btn-save { background: #007bff; color: white; }
-      .btn-close { background: #555; color: white; }
+
+      .btn-save {
+        background: #007bff;
+        color: white;
+      }
+
+      .btn-close {
+        background: #555;
+        color: white;
+      }
+
+      /* 📱 RESPONSIVIDADE */
+      @media (max-width: 768px) {
+
+        form input,
+        form select {
+          width: 100% !important;
+        }
+
+        table {
+          font-size: 0.9rem;
+        }
+
+        .btn-edit,
+        .btn-delete {
+          padding: 5px 8px;
+          font-size: 0.85rem;
+        }
+      }
+
+      @media (max-width: 450px) {
+        table {
+          font-size: 0.8rem;
+        }
+      }
   </style>
 </head>
 <body>
@@ -70,18 +192,20 @@
 
       <h3>Veículos Cadastrados</h3>
 
-      <table id="veiculos-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Modelo</th>
-            <th>Placa</th>
-            <th>Categoria</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+      <div class="table-container">
+        <table id="veiculos-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Modelo</th>
+              <th>Placa</th>
+              <th>Categoria</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -108,9 +232,6 @@
 
     let veiculoEditando = null;
 
-    // -----------------------------
-    // CARREGAR CATEGORIAS
-    // -----------------------------
     async function carregarCategorias() {
       const { data } = await supabase.from("categorias_cnh").select("*").order("nome");
 
@@ -128,13 +249,10 @@
       });
     }
 
-    // -----------------------------
-    // CARREGAR VEÍCULOS
-    // -----------------------------
     async function carregarVeiculos() {
       const { data } = await supabase
         .from("veiculos")
-        .select("id, modelo, placa, categoria_cnh:categoria_id (nome)");
+        .select("id, modelo, placa, categoria_cnh:categoria_id (id, nome)");
 
       const tbody = document.querySelector("#veiculos-table tbody");
       tbody.innerHTML = "";
@@ -155,9 +273,6 @@
       });
     }
 
-    // -----------------------------
-    // CADASTRAR VEÍCULO
-    // -----------------------------
     document.getElementById("form-veiculo").addEventListener("submit", async (e) => {
       e.preventDefault();
 
@@ -172,9 +287,6 @@
       carregarVeiculos();
     });
 
-    // -----------------------------
-    // ABRIR MODAL DE EDIÇÃO
-    // -----------------------------
     window.editar = function (id, modelo, placa, categoria_id) {
       veiculoEditando = id;
       document.getElementById("edit-modelo").value = modelo;
@@ -187,9 +299,6 @@
       document.getElementById("modal-edit").style.display = "none";
     };
 
-    // -----------------------------
-    // SALVAR EDIÇÃO
-    // -----------------------------
     document.getElementById("btn-salvar-edicao").onclick = async () => {
       const modelo = document.getElementById("edit-modelo").value;
       const placa = document.getElementById("edit-placa").value;
@@ -205,9 +314,6 @@
       alert("Veículo atualizado!");
     };
 
-    // -----------------------------
-    // EXCLUIR VEÍCULO
-    // -----------------------------
     window.excluir = async function (id) {
       if (!confirm("Deseja realmente excluir este veículo?")) return;
 
@@ -217,9 +323,9 @@
       alert("Veículo excluído!");
     };
 
-    // Inicializar
     carregarCategorias();
     carregarVeiculos();
   </script>
+
 </body>
 </html>
