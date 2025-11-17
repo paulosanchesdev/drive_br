@@ -2,8 +2,9 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
   <title>Login Administrativo</title>
+
   <style>
     /* ===================== BASE ===================== */
     body {
@@ -17,12 +18,12 @@
       align-items: center;
       flex-direction: column;
       overflow-x: hidden;
+      padding: 20px;
     }
 
-    /* Fundo animado simulando luz passando */
     body::before {
       content: "";
-      position: absolute;
+      position: fixed;
       width: 200%;
       height: 200%;
       background: repeating-linear-gradient(
@@ -48,7 +49,8 @@
       box-shadow: 0 0 25px rgba(0, 255, 150, 0.3);
       text-align: center;
       width: 360px;
-      transition: box-shadow 0.3s ease;
+      max-width: 100%;
+      transition: 0.3s ease;
       z-index: 2;
     }
 
@@ -59,6 +61,7 @@
     /* ===================== LOGO ===================== */
     .logo {
       width: 160px;
+      max-width: 70%;
       margin-bottom: 25px;
       border-radius: 15px;
       filter: drop-shadow(0 0 8px rgba(0, 255, 120, 0.6));
@@ -89,7 +92,7 @@
     }
 
     input {
-      background: linear-gradient(90deg, #1a1a1a, #1a1a1a);
+      background: #1a1a1a;
       color: #eee;
     }
 
@@ -104,23 +107,63 @@
     }
 
     .btn-cadastrar { background: linear-gradient(90deg, #eaff00, #00ffa6); }
-    .btn-entrar { background: linear-gradient(90deg, #00fff0, #007bff); }
-    .btn-logout { background: linear-gradient(90deg, #ff4d4d, #ff0000); }
+    .btn-entrar    { background: linear-gradient(90deg, #00fff0, #007bff); }
+    .btn-logout    { background: linear-gradient(90deg, #ff4d4d, #ff0000); }
 
     button:hover, input:hover {
       filter: brightness(1.2);
       transform: translateY(-2px);
     }
+
+    /* ===================== RESPONSIVIDADE ===================== */
+
+    /* CELULARES GRANDES (430px) */
+    @media (max-width: 430px) {
+      .container {
+        width: 95%;
+        padding: 30px 25px;
+      }
+      .logo {
+        width: 140px;
+      }
+    }
+
+    /* CELULARES MÉDIOS (380px) */
+    @media (max-width: 380px) {
+      .container {
+        padding: 25px 20px;
+      }
+      .logo {
+        width: 130px;
+      }
+      input, button {
+        font-size: 14px;
+        padding: 10px;
+      }
+    }
+
+    /* CELULARES PEQUENOS (320px) */
+    @media (max-width: 320px) {
+      .container {
+        padding: 20px;
+      }
+      .logo {
+        width: 110px;
+      }
+      h2 {
+        font-size: 18px;
+      }
+    }
+
   </style>
 </head>
+
 <body>
 
   <div class="container">
     <img src="pages/logo site.png" alt="Logo Drive BR" class="logo">
-
     <h2>Login Administrativo</h2>
 
-    <!-- FORMULÁRIO DE LOGIN -->
     <form id="authForm">
       <input type="email" id="userEmail" placeholder="Email">
       <input type="password" id="userPassword" placeholder="Senha">
@@ -152,56 +195,41 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    // ELEMENTOS
     const userEmail = document.querySelector("#userEmail");
     const userPassword = document.querySelector("#userPassword");
-    const signUpButton = document.querySelector("#signUpButton");
-    const signInButton = document.querySelector("#signInButton");
-    const forgotPasswordButton = document.querySelector("#forgotPasswordButton");
 
-    // CADASTRO
-    signUpButton.addEventListener("click", async () => {
-      const email = userEmail.value;
-      const password = userPassword.value;
-      if (!email || !password) return alert("Preencha email e senha!");
+    document.querySelector("#signUpButton").addEventListener("click", async () => {
+      if (!userEmail.value || !userPassword.value) return alert("Preencha email e senha!");
       try {
-        await createUserWithEmailAndPassword(auth, email, password);
+        await createUserWithEmailAndPassword(auth, userEmail.value, userPassword.value);
         alert("Conta criada com sucesso!");
       } catch (error) {
         alert("Erro ao criar conta: " + error.message);
       }
     });
 
-    // LOGIN
-    signInButton.addEventListener("click", async () => {
-      const email = userEmail.value;
-      const password = userPassword.value;
-      if (!email || !password) return alert("Preencha email e senha!");
+    document.querySelector("#signInButton").addEventListener("click", async () => {
+      if (!userEmail.value || !userPassword.value) return alert("Preencha email e senha!");
       try {
-        await signInWithEmailAndPassword(auth, email, password);
-        // Redireciona para a página desejada
+        await signInWithEmailAndPassword(auth, userEmail.value, userPassword.value);
         window.location.href = "pages/home.html";
       } catch (error) {
         alert("Erro no login: " + error.message);
       }
     });
 
-    // RESET SENHA
-    forgotPasswordButton.addEventListener("click", async () => {
-      const email = userEmail.value;
-      if (!email) return alert("Digite seu email para redefinir a senha");
+    document.querySelector("#forgotPasswordButton").addEventListener("click", async () => {
+      if (!userEmail.value) return alert("Digite seu email para redefinir a senha");
       try {
-        await sendPasswordResetEmail(auth, email);
-        alert("Email de redefinição de senha enviado!");
+        await sendPasswordResetEmail(auth, userEmail.value);
+        alert("Email de redefinição enviado!");
       } catch (error) {
         alert("Erro ao enviar email: " + error.message);
       }
     });
-
-   
   </script>
 
-  <!-- BLOQUEIO DE INSPECIONAR -->
+  <!-- Anti-inspect -->
   <script>
     document.addEventListener("contextmenu", e => e.preventDefault());
     document.onkeydown = function(e) {
@@ -213,3 +241,5 @@
 
 </body>
 </html>
+
+
