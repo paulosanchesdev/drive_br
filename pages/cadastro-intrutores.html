@@ -65,16 +65,29 @@
   </style>
 </head>
 <body>
-  
+
+  <!-- BOTÃO VOLTAR AO MENU -->
+  <a href="home.html" style="
+      display:inline-block;
+      margin:15px;
+      padding:8px 15px;
+      background:black;
+      color:white;
+      text-decoration:none;
+      border-radius:5px;
+      font-weight:bold;
+  ">
+      ⬅ Voltar ao Menu
+  </a>
+
   <div class="container">
     <div class="card">
       <h2>Cadastro de Instrutor</h2>
-      <form id="form-instrutor">
 
+      <form id="form-instrutor">
           <input type="text" id="nome-instrutor" placeholder="Nome do Instrutor" required />
           <input type="text" id="cpf-instrutor" placeholder="CPF" required />
 
-          <!-- CATEGORIA -->
           <select id="categoria-instrutor" required>
               <option value="">Selecione a Categoria</option>
               <option value="A">A</option>
@@ -87,10 +100,12 @@
 
           <input type="text" id="login-instrutor" placeholder="Login" required />
           <input type="password" id="senha-instrutor" placeholder="Senha" required />
+
           <button type="submit">Cadastrar Instrutor</button>
       </form>
 
       <h3>Instrutores Cadastrados</h3>
+
       <table id="instrutores-table">
           <thead>
               <tr>
@@ -99,11 +114,13 @@
                   <th>CPF</th>
                   <th>Categoria</th>
                   <th>Login</th>
+                  <th>Senha</th>
                   <th>Ações</th>
               </tr>
           </thead>
           <tbody></tbody>
       </table>
+
     </div>
   </div>
 
@@ -114,8 +131,23 @@
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    window.toggleSenha = function(id) {
+      const span = document.getElementById(`senha-${id}`);
+      const button = span.nextElementSibling;
+
+      if (span.style.display === "none") {
+          span.style.display = "inline";
+          button.textContent = "Ocultar";
+          button.style.background = "#dc3545";
+      } else {
+          span.style.display = "none";
+          button.textContent = "Mostrar";
+          button.style.background = "black";
+      }
+    };
+
     async function carregarInstrutores() {
-      const { data: instrutores, error } = await supabase.from('instrutores').select('*');
+      const { data: instrutores } = await supabase.from('instrutores').select('*');
 
       const tableBody = document.querySelector('#instrutores-table tbody');
       tableBody.innerHTML = '';
@@ -128,6 +160,19 @@
           <td>${i.cpf}</td>
           <td>${i.categoria}</td>
           <td>${i.login}</td>
+
+          <td>
+            <span id="senha-${i.id}" style="display:none;">${i.senha}</span>
+            <button onclick="toggleSenha(${i.id})" style="
+              padding:5px 10px;
+              border:none;
+              border-radius:4px;
+              background:black;
+              color:white;
+              cursor:pointer;
+            ">Mostrar</button>
+          </td>
+
           <td>
             <div class="btn-acoes">
               <button class="btn-editar" onclick="editarInstrutor(${i.id})">Editar</button>
@@ -148,11 +193,7 @@
       const login = document.getElementById('login-instrutor').value;
       const senha = document.getElementById('senha-instrutor').value;
 
-      const { error } = await supabase
-        .from('instrutores')
-        .insert([{ nome, cpf, categoria, login, senha }]);
-
-      if (error) return alert("Erro: " + error.message);
+      await supabase.from('instrutores').insert([{ nome, cpf, categoria, login, senha }]);
 
       alert("Instrutor cadastrado!");
       carregarInstrutores();
@@ -162,36 +203,26 @@
     window.editarInstrutor = async function(id) {
       const novoNome = prompt("Novo nome:");
       const novoCPF = prompt("Novo CPF:");
-      const novaCategoria = prompt("Nova categoria (A, A/B, C, D, E, Reciclagem):");
+      const novaCategoria = prompt("Nova categoria:");
       const novoLogin = prompt("Novo login:");
       const novaSenha = prompt("Nova senha:");
 
-      if (!novoNome || !novoCPF || !novaCategoria || !novoLogin || !novaSenha) {
-        return alert("Todos os campos são obrigatórios.");
-      }
-
-      const { error } = await supabase
+      await supabase
         .from('instrutores')
         .update({ nome: novoNome, cpf: novoCPF, categoria: novaCategoria, login: novoLogin, senha: novaSenha })
         .eq('id', id);
 
-      if (error) alert("Erro ao atualizar.");
-      else {
-        alert("Atualizado!");
-        carregarInstrutores();
-      }
+      alert("Atualizado!");
+      carregarInstrutores();
     };
 
     window.excluirInstrutor = async function(id) {
       if (!confirm("Deseja excluir?")) return;
 
-      const { error } = await supabase.from("instrutores").delete().eq("id", id);
+      await supabase.from("instrutores").delete().eq("id", id);
 
-      if (error) alert("Erro ao excluir.");
-      else {
-        alert("Excluído!");
-        carregarInstrutores();
-      }
+      alert("Excluído!");
+      carregarInstrutores();
     };
 
     carregarInstrutores();
