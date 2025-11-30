@@ -122,9 +122,88 @@
           h2 { font-size: 1.3rem; }
           #popupBox { max-width: 95%; }
       }
+
+
+      /* ===== CSS: botões finais pequenos, centrados e responsivos ===== */
+.footer-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin: 32px 0;
+  padding: 12px 8px 28px;
+  flex-wrap: wrap;
+}
+
+.footer-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  min-width: 96px;
+  font-size: 13px;
+  line-height: 1;
+  border-radius: 6px;
+  text-decoration: none;
+  color: #fff;
+  background: #007bff;    /* padrão azul */
+  border: none;
+  cursor: pointer;
+  transition: transform .12s ease, background .12s ease, opacity .12s ease;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.12);
+}
+
+/* Variante para instrutor (verde) */
+.footer-btn.instrutor {
+  background: #28a745;
+}
+
+/* Variante neutra (opcional) */
+.footer-btn.ghost {
+  background: transparent;
+  color: inherit;
+  border: 1px solid rgba(0,0,0,0.08);
+}
+
+/* hover / focus */
+.footer-btn:hover,
+.footer-btn:focus {
+  transform: translateY(-2px);
+  opacity: 0.95;
+  text-decoration: none;
+  outline: none;
+}
+
+/* toque / active */
+.footer-btn:active {
+  transform: translateY(0);
+  opacity: 0.9;
+}
+
+/* responsividade: botões menores em telas muito pequenas */
+@media (max-width: 400px) {
+  .footer-btn {
+    padding: 6px 8px;
+    min-width: 84px;
+    font-size: 12px;
+  }
+}
+
   </style>
 </head>
 <body>
+  <!-- BOTÃO VOLTAR AO MENU -->
+  <a href="home.html" style="
+      display:inline-block;
+      margin:15px;
+      padding:8px 15px;
+      background:black;
+      color:white;
+      text-decoration:none;
+      border-radius:5px;
+      font-weight:bold;
+  ">
+      ⬅ Voltar ao Menu
+  </a>
 
   <div class="container">
     <div class="card">
@@ -272,7 +351,11 @@
     carregarCategoriasCNH();
     carregarAlunos();
   </script>
-
+ <!-- ===== HTML: botões finais (cole antes do </body>) ===== -->
+ <div class="footer-buttons" role="group" aria-label="Ações finais">
+    <a href="interface_aluno.html" class="footer-btn aluno" title="Sou Aluno" target="_blank" rel="noopener noreferrer">Sou Aluno</a>
+    <a href="interface_instrutor.html" class="footer-btn instrutor" title="Sou Instrutor" target="_blank" rel="noopener noreferrer">Sou Instrutor</a>
+  </div>
+  
 </body>
 </html>
-
