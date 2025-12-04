@@ -499,7 +499,15 @@
           carregarResumoAgendamentos();
         } catch (error) {
           console.error('Erro ao agendar aula(s):', error.message);
-          alert('Erro ao agendar aula(s): ' + error.message);
+
+          // Se for conflito de horário
+        if (error.message.includes("duplicate key value")) {
+        alert("⛔ Este instrutor já possui uma aula agendada nesse horário!");
+} 
+else {
+    alert("⚠ Ocorreu um erro ao agendar. Tente novamente.");
+}
+
         }
       }
     });
