@@ -13,7 +13,7 @@ const supabaseUrl = 'https://xoxnwsezmkyfipbnrtiq.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhveG53c2V6bWt5ZmlwYm5ydGlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwNzgwNTYsImV4cCI6MjA1MzY1NDA1Nn0.fyxXHllPPQpvvtVWP3UQBBbuojyznJognQ7yIgSpH28';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// 🔹 Login pelo Supabase
+// Login
 window.loginAluno = async function() {
     const login = document.getElementById("login").value.trim();
     const senha = document.getElementById("senha").value.trim();
@@ -30,7 +30,6 @@ window.loginAluno = async function() {
         return;
     }
 
-    // Salvar sessão
     localStorage.setItem("alunoId", aluno.id);
     localStorage.setItem("alunoNome", aluno.nome);
 
@@ -40,7 +39,7 @@ window.loginAluno = async function() {
     carregarAulas(aluno.id);
 }
 
-// 🔹 Logout
+// Logout
 window.logout = function() {
     localStorage.removeItem("alunoId");
     localStorage.removeItem("alunoNome");
@@ -50,7 +49,7 @@ window.logout = function() {
     document.getElementById("senha").value = "";
 }
 
-// 🔹 Auto-login se sessão existir
+// Auto-login
 const alunoId = localStorage.getItem("alunoId");
 if(alunoId){
     document.getElementById("loginContainer").style.display = "none";
@@ -58,9 +57,9 @@ if(alunoId){
     carregarAulas(alunoId);
 }
 
-// 🔹 Carregar aulas do aluno
+// Carregar Aulas
 async function carregarAulas(alunoId) {
-    const { data: aulas, error } = await supabase
+    const { data: aulas } = await supabase
         .from("aulas")
         .select(`id, data_hora, status, instrutores(nome), veiculos(modelo)`)
         .eq("aluno_id", alunoId)
@@ -77,51 +76,146 @@ async function carregarAulas(alunoId) {
     const agora = new Date();
 
     for (const aula of aulas) {
-        // Atualiza automaticamente aula Pendente já passada
         if(aula.status === "Pendente" && new Date(aula.data_hora) <= agora){
-            const { error } = await supabase
-                .from("aulas")
-                .update({ status: "Realizada" })
-                .eq("id", aula.id);
-
-            if(!error) aula.status = "Realizada"; // Atualiza no frontend
+            await supabase.from("aulas").update({ status: "Realizada" }).eq("id", aula.id);
+            aula.status = "Realizada";
         }
 
         const tr = document.createElement("tr");
         const dataFormatada = new Date(aula.data_hora).toLocaleString("pt-BR", {dateStyle:"short", timeStyle:"short"});
-        
-        // Escolher cor do status
+
         let statusCor = "gray";
         if(aula.status === "Pendente") statusCor = "orange";
         else if(aula.status === "Confirmada") statusCor = "green";
         else if(aula.status === "Realizada") statusCor = "blue";
-        
-        tr.innerHTML = `<td>${dataFormatada}</td>
-                        <td>${aula.instrutores?.nome||"-"}</td>
-                        <td>${aula.veiculos?.modelo||"-"}</td>
-                        <td style="color:${statusCor}; font-weight:bold;">${aula.status}</td>`;
+
+        tr.innerHTML = `
+            <td>${dataFormatada}</td>
+            <td>${aula.instrutores?.nome || "-"}</td>
+            <td>${aula.veiculos?.modelo || "-"}</td>
+            <td style="color:${statusCor}; font-weight:bold;">${aula.status}</td>
+        `;
         tbody.appendChild(tr);
     }
 }
 </script>
 
 <style>
-body {font-family: Arial; background: linear-gradient(135deg,#1e3c72,#2a5298); color:white; display:flex; justify-content:center; align-items:center; min-height:100vh; flex-direction:column; margin:0;}
-.container{background-color:rgba(0,0,0,0.3);padding:20px 30px;border-radius:15px;width:90%;max-width:400px;box-shadow:0 0 15px rgba(0,0,0,0.5);}
-h2{text-align:center;margin-bottom:20px;}
-input{width:100%;padding:10px;margin:8px 0;border-radius:8px;border:none;}
-button{width:100%;padding:10px;background-color:#00bfff;border:none;border-radius:8px;color:white;font-weight:bold;cursor:pointer;margin-top:5px;}
-button:hover{background-color:#0099cc;}
-table{width:100%;border-collapse:collapse;margin-top:15px;background-color:white;color:black;border-radius:10px;overflow:hidden;}
-th,td{padding:10px;border-bottom:1px solid #ddd;text-align:center;}
-th{background-color:#0099cc;color:white;}
-#logoutBtn{background-color:#f44336;margin-top:10px;}
-#logoutBtn:hover{background-color:#d32f2f;}
+body {
+  font-family: Arial;
+  background: black;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  flex-direction: column;
+  margin: 0;
+  padding-top: 20px;
+}
+
+/* LOGO RESPONSIVA */
+.logo-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.logo-drive {
+  width: 200px;
+  max-width: 70%;
+  height: auto;
+  filter: drop-shadow(0 0 5px #000);
+}
+
+.container {
+  background-color: rgba(0,0,0,0.3);
+  padding: 20px 30px;
+  border-radius: 15px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.5);
+  margin: 0 auto;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+input, button {
+  width: 100%;
+  padding: 12px;          
+  margin: 8px 0;
+  border-radius: 8px;
+  border: none;
+  box-sizing: border-box;  
+}
+
+button {
+  background-color: #00bfff;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0099cc;
+}
+
+
+button:hover {
+  background-color: #0099cc;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  background-color: white;
+  color: black;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+th, td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  text-align: center;
+}
+
+th {
+  background-color: #0099cc;
+  color: white;
+}
+
+#logoutBtn {
+  background-color: #f44336;
+  margin-top: 10px;
+}
+
+#logoutBtn:hover {
+  background-color: #d32f2f;
+}
+
+/* MOBILE */
+@media (max-width: 480px) {
+  .logo-drive {
+    width: 150px;
+  }
+}
 </style>
 
 </head>
 <body>
 
+<!-- LOGO -->
+<div class="logo-container">
+    <img src="logo site.png" class="logo-drive" alt="Logo Drive BR">
+</div>
+
+<!-- LOGIN -->
 <div class="container" id="loginContainer">
 <h2>Login Aluno</h2>
 <input type="text" id="login" placeholder="Login do aluno">
@@ -129,10 +223,13 @@ th{background-color:#0099cc;color:white;}
 <button onclick="loginAluno()">Entrar</button>
 </div>
 
+<!-- AULAS -->
 <div class="container" id="aulasContainer" style="display:none;">
 <h2>Seus Horários</h2>
 <table>
-<thead><tr><th>Data/Hora</th><th>Instrutor</th><th>Veículo</th><th>Status</th></tr></thead>
+<thead>
+<tr><th>Data/Hora</th><th>Instrutor</th><th>Veículo</th><th>Status</th></tr>
+</thead>
 <tbody id="aulasBody"></tbody>
 </table>
 <button id="logoutBtn" onclick="logout()">Sair</button>
